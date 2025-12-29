@@ -2,6 +2,7 @@
 #include <memory>
 #include <ProcessManager.h>
 #include <string>
+#include <algorithm>
 
 int main(int, char* [])
 {
@@ -13,12 +14,12 @@ int main(int, char* [])
 
 		for (auto& m : modules)
 		{
-			std::wcout << m.szExePath << std::endl;
+			std::wcout << m.modBaseSize << std::endl;
 		}
 	}
 	catch (const std::exception& ex)
 	{
-		std::cout << ex.what() << std::endl << GetLastError();
+		std::cout << ex.what() << std::endl << "Last error code: " << GetLastError();
 	}
 
 	return 0;

@@ -9,12 +9,14 @@ ProcessManager::ProcessManager(const std::wstring& processName) : _processName(p
 	HANDLE processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, _processId);
 	if (processHandle == NULL)
 	{
-		throw std::runtime_error("Unable to get process handle");
+		throw std::runtime_error("Unable to get process handle.");
 	}
 
 	_processHandle = processHandle;
 
 	_processModules = ReadProcessModules();
+
+	_baseModuleMemory = ReadBaseModuleMemory();
 }
 
 ProcessManager::~ProcessManager()
@@ -28,7 +30,7 @@ DWORD ProcessManager::ReadProcessId(const std::wstring& processName) const
 	HANDLE processesSnapshotHandle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (processesSnapshotHandle == INVALID_HANDLE_VALUE)
 	{
-		throw std::runtime_error("Failed to create processes snapshot");
+		throw std::runtime_error("Failed to create processes snapshot.");
 	}
 
 	PROCESSENTRY32 processEntry;
@@ -38,7 +40,7 @@ DWORD ProcessManager::ReadProcessId(const std::wstring& processName) const
 	if (!Process32First(processesSnapshotHandle, &processEntry))
 	{
 		CloseHandle(processesSnapshotHandle);
-		throw std::runtime_error("Unable to find first process in snapshot");
+		throw std::runtime_error("Unable to find first process in snapshot.");
 	}
 
 	do
@@ -54,7 +56,7 @@ DWORD ProcessManager::ReadProcessId(const std::wstring& processName) const
 
 	if (result == 0)
 	{
-		throw std::runtime_error("Unable to find process");
+		throw std::runtime_error("Unable to find process.");
 	}
 
 	return result;
@@ -65,7 +67,7 @@ std::vector<MODULEENTRY32> ProcessManager::ReadProcessModules() const
 	HANDLE modulesSnapshotHandle = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, _processId);
 	if (modulesSnapshotHandle == INVALID_HANDLE_VALUE)
 	{
-		throw std::runtime_error("Failed to create modules snapshot");
+		throw std::runtime_error("Failed to create modules snapshot.");
 	}
 
 	MODULEENTRY32 moduleEntry;
@@ -74,7 +76,7 @@ std::vector<MODULEENTRY32> ProcessManager::ReadProcessModules() const
 	if (!Module32First(modulesSnapshotHandle, &moduleEntry))
 	{
 		CloseHandle(modulesSnapshotHandle);
-		throw std::runtime_error("Unable to find first module in snapshot");
+		throw std::runtime_error("Unable to find first module in snapshot.");
 	}
 
 	std::vector<MODULEENTRY32> processModules;
@@ -86,4 +88,28 @@ std::vector<MODULEENTRY32> ProcessManager::ReadProcessModules() const
 	CloseHandle(modulesSnapshotHandle);
 
 	return processModules;
+}
+
+std::vector<BYTE> ProcessManager::ReadBaseModuleMemory() const
+{
+	if (_processModules.empty())
+	{
+		throw std::runtime_error("No modules loaded.");
+	}
+
+	const MODULEENTRY32& baseModuleEntry = _processModules[0];
+
+	std::vector<BYTE> buffer(baseModuleEntry.modBaseSize);
+	SIZE_T bufferSize;
+	if (!ReadProcessMemory(_processHandle, baseModuleEntry.modBaseAddr, buffer.data(), baseModuleEntry.modBaseSize, &bufferSize))
+	{
+		throw std::runtime_error("Unable to read base module memory.");
+	}
+
+	if (baseModuleEntry.modBaseSize != bufferSize)
+	{
+		throw std::runtime_error("Unable to read full memory of base module.");
+	}
+
+	return buffer;
 }

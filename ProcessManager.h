@@ -11,14 +11,17 @@ public:
 	ProcessManager(const std::wstring& processName);
 	~ProcessManager();
 	const std::wstring& GetProcessName() const { return _processName; }
-	DWORD ReadProcessId() const { return _processId; }
+	DWORD GetProcessId() const { return _processId; }
 	HANDLE GetProcessHandle() const { return _processHandle; }
 	const std::vector<MODULEENTRY32>& GetProcessModules() const { return _processModules; }
+	std::vector<BYTE>& GetBaseModuleMemory() { return _baseModuleMemory; }
 private:
 	DWORD ReadProcessId(const std::wstring& processName) const;
 	std::vector<MODULEENTRY32> ReadProcessModules() const;
+	std::vector<BYTE> ReadBaseModuleMemory() const;
 	const std::wstring _processName;
 	HANDLE _processHandle;
 	DWORD _processId;
 	std::vector<MODULEENTRY32> _processModules;
+	std::vector<BYTE> _baseModuleMemory;
 };
