@@ -1,7 +1,10 @@
-#include <ProcessManager.h>
+#include <windows.h>
 #include <TlHelp32.h>
 #include <stdexcept>
 #include <iostream>
+
+#include <ProcessManager.h>
+#include <PortableExecutable.h>
 
 ProcessManager::ProcessManager(const std::wstring& processName) : _processName(processName)
 {
@@ -17,6 +20,8 @@ ProcessManager::ProcessManager(const std::wstring& processName) : _processName(p
 	_processModules = ReadProcessModules();
 
 	_baseModuleMemory = ReadBaseModuleMemory();
+
+	_portableExecutable = std::make_unique<PortableExecutable>(std::span<std::byte>(_baseModuleMemory.begin(), _baseModuleMemory.end()));
 }
 
 ProcessManager::~ProcessManager()
@@ -90,7 +95,7 @@ std::vector<MODULEENTRY32> ProcessManager::ReadProcessModules() const
 	return processModules;
 }
 
-std::vector<BYTE> ProcessManager::ReadBaseModuleMemory() const
+std::vector<std::byte> ProcessManager::ReadBaseModuleMemory() const
 {
 	if (_processModules.empty())
 	{
@@ -99,7 +104,7 @@ std::vector<BYTE> ProcessManager::ReadBaseModuleMemory() const
 
 	const MODULEENTRY32& baseModuleEntry = _processModules[0];
 
-	std::vector<BYTE> buffer(baseModuleEntry.modBaseSize);
+	std::vector<std::byte> buffer(baseModuleEntry.modBaseSize);
 	SIZE_T bufferSize;
 	if (!ReadProcessMemory(_processHandle, baseModuleEntry.modBaseAddr, buffer.data(), baseModuleEntry.modBaseSize, &bufferSize))
 	{

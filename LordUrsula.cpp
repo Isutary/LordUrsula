@@ -1,21 +1,17 @@
 #include <iostream>
 #include <memory>
-#include <ProcessManager.h>
 #include <string>
 #include <algorithm>
+#include <span>
+
+#include <ProcessManager.h>
+#include <PortableExecutable.h>
 
 int main(int, char* [])
 {
 	try
 	{
-		std::unique_ptr<ProcessManager> pm = std::make_unique<ProcessManager>(L"ConsoleAppTarget.exe");
-
-		auto& modules = pm->GetProcessModules();
-
-		for (auto& m : modules)
-		{
-			std::wcout << m.modBaseSize << std::endl;
-		}
+		std::unique_ptr<ProcessManager> processManager = std::make_unique<ProcessManager>(L"ConsoleAppTarget.exe");
 	}
 	catch (const std::exception& ex)
 	{
