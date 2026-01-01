@@ -17,6 +17,7 @@ PortableExecutable::PortableExecutable(std::vector<std::byte> buffer) : _buffer(
 	CreateDOSHeader();
 	CreateFileHeader();
 	CreateOptionalHeader();
+	CreateSectionsHeaders();
 }
 
 PortableExecutable::~PortableExecutable()
@@ -65,13 +66,40 @@ void PortableExecutable::CreateOptionalHeader()
 	_bufferIt += sizeof(IMAGE_OPTIONAL_HEADER);
 }
 
+void PortableExecutable::CreateSectionsHeaders()
+{
+	if (!CheckBounds(sizeof(IMAGE_SECTION_HEADER) * _fileHeader->NumberOfSections))
+	{
+		throw std::runtime_error("Not enough bytes for all IMAGE_SECTION_HEADERS.");
+	}
+
+	_sectionsHeaders.reserve(_fileHeader->NumberOfSections);
+	for (WORD i = 0; i < _fileHeader->NumberOfSections; i++)
+	{
+		_sectionsHeaders.push_back(reinterpret_cast<IMAGE_SECTION_HEADER*>(std::to_address(_bufferIt)));
+
+		_bufferIt += sizeof(IMAGE_SECTION_HEADER);
+	}
+
+	ptrdiff_t currentSize = _bufferIt - _buffer.begin();
+	
+	size_t bufferItOffset = (currentSize + _optionalHeader->SectionAlignment - 1) / _optionalHeader->SectionAlignment * _optionalHeader->SectionAlignment;
+
+	if (bufferItOffset > _buffer.size())
+	{
+		throw std::runtime_error("Not enough bytes to align section headers.");
+	}
+
+	_bufferIt = _buffer.begin() + bufferItOffset;
+}
+
 bool PortableExecutable::IsImageFile() const
 {
 	constexpr std::array peImageSignature = {std::byte(0x50), std::byte(0x45), std::byte(0x00), std::byte(0x00)};
 
 	if (!CheckBounds(sizeof(IMAGE_DOS_HEADER)))
 	{
-		throw std::runtime_error("Buffer doesn't contain enough bytes to find PE header offset.");
+		throw std::runtime_error("Not enough bytes to find PE header offset.");
 	}
 
 	LONG* peImageOffset = reinterpret_cast<LONG*>(std::to_address(_bufferIt) + 0x3C);

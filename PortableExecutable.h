@@ -13,11 +13,13 @@ private:
 	void CreateDOSHeader();
 	void CreateFileHeader();
 	void CreateOptionalHeader();
+	void CreateSectionsHeaders();
 	bool CheckBounds(size_t size) const;
 	bool IsImageFile() const;
 	IMAGE_DOS_HEADER* _dosHeader;
 	IMAGE_FILE_HEADER* _fileHeader;
 	IMAGE_OPTIONAL_HEADER* _optionalHeader;
+	std::vector<IMAGE_SECTION_HEADER*> _sectionsHeaders;
 	std::vector<std::byte> _buffer;
 	std::vector<std::byte>::iterator _bufferIt;
 };
