@@ -7,7 +7,7 @@
 class PortableExecutable
 {
 public:
-	PortableExecutable(std::span<std::byte> buffer);
+	PortableExecutable(std::vector<std::byte> buffer);
 	~PortableExecutable();
 private:
 	void CreateDOSHeader();
@@ -18,6 +18,6 @@ private:
 	IMAGE_DOS_HEADER* _dosHeader;
 	IMAGE_FILE_HEADER* _fileHeader;
 	IMAGE_OPTIONAL_HEADER* _optionalHeader;
-	std::span<std::byte> _buffer;
-	std::span<std::byte>::iterator _bufferIt;
+	std::vector<std::byte> _buffer;
+	std::vector<std::byte>::iterator _bufferIt;
 };

@@ -5,10 +5,9 @@
 
 #include <PortableExecutable.h>
 
-PortableExecutable::PortableExecutable(std::span<std::byte> buffer)
+PortableExecutable::PortableExecutable(std::vector<std::byte> buffer) : _buffer(std::move(buffer))
 {
-	_buffer = buffer;
-	_bufferIt = buffer.begin();
+	_bufferIt = _buffer.begin();
 
 	if (!IsImageFile())
 	{
@@ -87,5 +86,5 @@ bool PortableExecutable::IsImageFile() const
 
 bool PortableExecutable::CheckBounds(size_t size) const
 {
-	return std::distance(_bufferIt, _buffer.end()) >= static_cast<ptrdiff_t>(size);
+	return _buffer.end() - _bufferIt >= static_cast<ptrdiff_t>(size);
 }

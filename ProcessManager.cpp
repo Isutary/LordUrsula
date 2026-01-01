@@ -2,9 +2,9 @@
 #include <TlHelp32.h>
 #include <stdexcept>
 #include <iostream>
+#include <vector>
 
 #include <ProcessManager.h>
-#include <PortableExecutable.h>
 
 ProcessManager::ProcessManager(const std::wstring& processName) : _processName(processName)
 {
@@ -18,16 +18,37 @@ ProcessManager::ProcessManager(const std::wstring& processName) : _processName(p
 	_processHandle = processHandle;
 
 	_processModules = ReadProcessModules();
-
-	_baseModuleMemory = ReadBaseModuleMemory();
-
-	_portableExecutable = std::make_unique<PortableExecutable>(std::span<std::byte>(_baseModuleMemory.begin(), _baseModuleMemory.end()));
 }
 
 ProcessManager::~ProcessManager()
 {
 	CloseHandle(_processHandle);
 	_processHandle = NULL;
+}
+
+
+std::vector<std::byte> ProcessManager::ReadBaseModuleMemory() const
+{
+	if (_processModules.empty())
+	{
+		throw std::runtime_error("No modules loaded.");
+	}
+
+	const MODULEENTRY32& baseModuleEntry = _processModules[0];
+
+	std::vector<std::byte> buffer(baseModuleEntry.modBaseSize);
+	SIZE_T bufferSize;
+	if (!ReadProcessMemory(_processHandle, baseModuleEntry.modBaseAddr, buffer.data(), baseModuleEntry.modBaseSize, &bufferSize))
+	{
+		throw std::runtime_error("Unable to read base module memory.");
+	}
+
+	if (baseModuleEntry.modBaseSize != bufferSize)
+	{
+		throw std::runtime_error("Unable to read full memory of base module.");
+	}
+
+	return buffer;
 }
 
 DWORD ProcessManager::ReadProcessId(const std::wstring& processName) const
@@ -93,28 +114,4 @@ std::vector<MODULEENTRY32> ProcessManager::ReadProcessModules() const
 	CloseHandle(modulesSnapshotHandle);
 
 	return processModules;
-}
-
-std::vector<std::byte> ProcessManager::ReadBaseModuleMemory() const
-{
-	if (_processModules.empty())
-	{
-		throw std::runtime_error("No modules loaded.");
-	}
-
-	const MODULEENTRY32& baseModuleEntry = _processModules[0];
-
-	std::vector<std::byte> buffer(baseModuleEntry.modBaseSize);
-	SIZE_T bufferSize;
-	if (!ReadProcessMemory(_processHandle, baseModuleEntry.modBaseAddr, buffer.data(), baseModuleEntry.modBaseSize, &bufferSize))
-	{
-		throw std::runtime_error("Unable to read base module memory.");
-	}
-
-	if (baseModuleEntry.modBaseSize != bufferSize)
-	{
-		throw std::runtime_error("Unable to read full memory of base module.");
-	}
-
-	return buffer;
 }
