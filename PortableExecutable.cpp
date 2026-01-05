@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <array>
+#include <cstring>
 
 #include <PortableExecutable.h>
 
@@ -18,6 +19,7 @@ PortableExecutable::PortableExecutable(std::vector<std::byte> buffer) : _buffer(
 	CreateFileHeader();
 	CreateOptionalHeader();
 	CreateSectionsHeaders();
+	CreateTextSection();
 }
 
 PortableExecutable::~PortableExecutable()
@@ -91,6 +93,37 @@ void PortableExecutable::CreateSectionsHeaders()
 	}
 
 	_bufferIt = _buffer.begin() + bufferItOffset;
+}
+
+void PortableExecutable::CreateTextSection()
+{
+	auto textSectionHeaderIt = std::find_if(_sectionsHeaders.begin(), _sectionsHeaders.end(), [](const IMAGE_SECTION_HEADER* sectionHeader)
+		{
+			char nameDestination[9] = {};
+			std::memcpy(nameDestination, sectionHeader->Name, sizeof(sectionHeader->Name));
+			return std::strcmp(nameDestination, ".text") == 0;
+		});
+
+	if (textSectionHeaderIt == _sectionsHeaders.end())
+	{
+		throw std::runtime_error("Unable to find .text section header.");
+	}
+
+	IMAGE_SECTION_HEADER* textSectionHeader = *textSectionHeaderIt;
+
+	_textSection.reserve(textSectionHeader->Misc.VirtualSize);
+
+	auto it = _buffer.begin() + textSectionHeader->VirtualAddress;
+
+	for (it; it < _buffer.begin() + textSectionHeader->VirtualAddress + textSectionHeader->Misc.VirtualSize; it++)
+	{
+		if (static_cast<int>(*it) == 0x8D && static_cast<int>(*(it + 1)) == 0x04 && static_cast<int>(*(it + 2)) == 0x3B)
+		{
+			break;
+		}
+	}
+
+	std::cout << "Result: " << std::hex << static_cast<int>(*it) << std::endl;
 }
 
 bool PortableExecutable::IsImageFile() const
