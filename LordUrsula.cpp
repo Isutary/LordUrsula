@@ -1,8 +1,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <algorithm>
-#include <span>
 
 #include <ProcessManager.h>
 #include <PortableExecutable.h>

@@ -135,6 +135,7 @@
   <ItemGroup>
     <ClInclude Include="PortableExecutable.h" />
     <ClInclude Include="ProcessManager.h" />
+    <ClInclude Include="SnapshotHelper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -38,5 +38,8 @@
     <ClInclude Include="PortableExecutable.h">
       <Filter>Header Files\Models</Filter>
     </ClInclude>
+    <ClInclude Include="SnapshotHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

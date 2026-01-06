@@ -1,10 +1,10 @@
 #include <windows.h>
 #include <TlHelp32.h>
 #include <stdexcept>
-#include <iostream>
 #include <vector>
 
 #include <ProcessManager.h>
+#include <SnapshotHelper.h>
 
 ProcessManager::ProcessManager(const std::wstring& processName) : _processName(processName)
 {
@@ -16,8 +16,6 @@ ProcessManager::ProcessManager(const std::wstring& processName) : _processName(p
 	}
 
 	_processHandle = processHandle;
-
-	_processModules = ReadProcessModules();
 }
 
 ProcessManager::~ProcessManager()
@@ -29,12 +27,13 @@ ProcessManager::~ProcessManager()
 
 std::vector<std::byte> ProcessManager::ReadBaseModuleMemory() const
 {
-	if (_processModules.empty())
+	std::vector<MODULEENTRY32> processModules = ReadSnapshotEntries<MODULEENTRY32>(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, _processId);
+	if (processModules.empty())
 	{
 		throw std::runtime_error("No modules loaded.");
 	}
 
-	const MODULEENTRY32& baseModuleEntry = _processModules[0];
+	const MODULEENTRY32& baseModuleEntry = processModules[0];
 
 	std::vector<std::byte> buffer(baseModuleEntry.modBaseSize);
 	SIZE_T bufferSize;
@@ -53,65 +52,18 @@ std::vector<std::byte> ProcessManager::ReadBaseModuleMemory() const
 
 DWORD ProcessManager::ReadProcessId(const std::wstring& processName) const
 {
-	HANDLE processesSnapshotHandle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (processesSnapshotHandle == INVALID_HANDLE_VALUE)
-	{
-		throw std::runtime_error("Failed to create processes snapshot.");
-	}
+	std::vector<PROCESSENTRY32> processEntries = ReadSnapshotEntries<PROCESSENTRY32>(TH32CS_SNAPPROCESS);
 
-	PROCESSENTRY32 processEntry;
-	processEntry.dwSize = sizeof(PROCESSENTRY32);
-
-	DWORD result = 0;
-	if (!Process32First(processesSnapshotHandle, &processEntry))
-	{
-		CloseHandle(processesSnapshotHandle);
-		throw std::runtime_error("Unable to find first process in snapshot.");
-	}
-
-	do
-	{
-		if (std::wstring(processEntry.szExeFile) == processName)
+	auto processEntry = std::find_if(processEntries.begin(), processEntries.end(), [processName](const PROCESSENTRY32& e)
 		{
-			result = processEntry.th32ProcessID;
-			break;
-		}
-	} while (Process32Next(processesSnapshotHandle, &processEntry));
+			if (std::wstring(e.szExeFile) == processName) return true;
+			else return false;
+		});
 
-	CloseHandle(processesSnapshotHandle);
-
-	if (result == 0)
+	if (processEntry == processEntries.end())
 	{
-		throw std::runtime_error("Unable to find process.");
+		throw std::runtime_error("Unable to find process with specified name.");
 	}
 
-	return result;
-}
-
-std::vector<MODULEENTRY32> ProcessManager::ReadProcessModules() const
-{
-	HANDLE modulesSnapshotHandle = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, _processId);
-	if (modulesSnapshotHandle == INVALID_HANDLE_VALUE)
-	{
-		throw std::runtime_error("Failed to create modules snapshot.");
-	}
-
-	MODULEENTRY32 moduleEntry;
-	moduleEntry.dwSize = sizeof(MODULEENTRY32);
-
-	if (!Module32First(modulesSnapshotHandle, &moduleEntry))
-	{
-		CloseHandle(modulesSnapshotHandle);
-		throw std::runtime_error("Unable to find first module in snapshot.");
-	}
-
-	std::vector<MODULEENTRY32> processModules;
-	do
-	{
-		processModules.push_back(moduleEntry);
-	} while (Module32Next(modulesSnapshotHandle, &moduleEntry));
-
-	CloseHandle(modulesSnapshotHandle);
-
-	return processModules;
+	return processEntry->th32ProcessID;
 }
