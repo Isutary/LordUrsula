@@ -8,6 +8,10 @@ class ProcessManager
 {
 public:
 	ProcessManager(const std::wstring& processName);
+	ProcessManager(const ProcessManager& other) = delete;
+	ProcessManager(ProcessManager&& other) = delete;
+	ProcessManager& operator=(const ProcessManager& other) = delete;
+	ProcessManager& operator=(ProcessManager&& other) = delete;
 	~ProcessManager();
 	const std::wstring& GetProcessName() const { return _processName; }
 	std::vector<std::byte> ReadBaseModuleMemory() const;

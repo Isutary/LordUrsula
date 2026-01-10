@@ -8,6 +8,10 @@ class PortableExecutable
 {
 public:
 	PortableExecutable(std::vector<std::byte> buffer);
+	PortableExecutable(const PortableExecutable& other) = delete;
+	PortableExecutable(PortableExecutable&& other) = delete;
+	PortableExecutable& operator=(const PortableExecutable& other) = delete;
+	PortableExecutable& operator=(PortableExecutable&& other) = delete;
 	~PortableExecutable();
 private:
 	void CreateDOSHeader();
