@@ -41,5 +41,14 @@
     <ClInclude Include="SnapshotHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="CoutHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StringWrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

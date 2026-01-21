@@ -4,10 +4,13 @@
 #include <vector>
 #include <span>
 
+#include <ModuleWrapper.h>
+#include <StringWrapper.h>
+
 class PortableExecutable
 {
 public:
-	PortableExecutable(std::vector<std::byte> buffer);
+	PortableExecutable(ModuleWrapper moduleWrapper);
 	PortableExecutable(const PortableExecutable& other) = delete;
 	PortableExecutable(PortableExecutable&& other) = delete;
 	PortableExecutable& operator=(const PortableExecutable& other) = delete;
@@ -19,13 +22,16 @@ private:
 	void CreateOptionalHeader();
 	void CreateSectionsHeaders();
 	void CreateTextSection();
+	void CreateStrings();
 	bool CheckBounds(size_t size) const;
 	bool IsImageFile() const;
 	IMAGE_DOS_HEADER* _dosHeader;
 	IMAGE_FILE_HEADER* _fileHeader;
 	IMAGE_OPTIONAL_HEADER* _optionalHeader;
-	std::vector<std::byte*> _textSection;
+	std::vector<BYTE> _textSection;
+	std::vector<StringWrapper> _strings;
 	std::vector<IMAGE_SECTION_HEADER*> _sectionsHeaders;
-	std::vector<std::byte> _buffer;
-	std::vector<std::byte>::iterator _bufferIt;
+	BYTE* _moduleBaseAddress;
+	std::vector<BYTE> _buffer;
+	std::vector<BYTE>::iterator _bufferIt;
 };

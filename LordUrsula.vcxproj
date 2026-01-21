@@ -133,9 +133,12 @@
     <ClCompile Include="ProcessManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CoutHelper.h" />
+    <ClInclude Include="ModuleWrapper.h" />
     <ClInclude Include="PortableExecutable.h" />
     <ClInclude Include="ProcessManager.h" />
     <ClInclude Include="SnapshotHelper.h" />
+    <ClInclude Include="StringWrapper.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

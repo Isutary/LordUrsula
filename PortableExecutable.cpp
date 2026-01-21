@@ -5,8 +5,11 @@
 #include <cstring>
 
 #include <PortableExecutable.h>
+#include <ModuleWrapper.h>
+#include <CoutHelper.h>
+#include <StringWrapper.h>
 
-PortableExecutable::PortableExecutable(std::vector<std::byte> buffer) : _buffer(std::move(buffer))
+PortableExecutable::PortableExecutable(ModuleWrapper moduleWrapper) : _buffer(std::move(moduleWrapper.buffer)), _moduleBaseAddress(moduleWrapper.moduleBaseAddress)
 {
 	_bufferIt = _buffer.begin();
 
@@ -20,6 +23,7 @@ PortableExecutable::PortableExecutable(std::vector<std::byte> buffer) : _buffer(
 	CreateOptionalHeader();
 	CreateSectionsHeaders();
 	CreateTextSection();
+	CreateStrings();
 }
 
 PortableExecutable::~PortableExecutable()
@@ -113,22 +117,55 @@ void PortableExecutable::CreateTextSection()
 
 	_textSection.reserve(textSectionHeader->Misc.VirtualSize);
 
-	auto it = _buffer.begin() + textSectionHeader->VirtualAddress;
+	auto textSectionStartIt = _buffer.begin() + textSectionHeader->VirtualAddress;
+	auto textSectionEndIt = textSectionStartIt + textSectionHeader->Misc.VirtualSize;
 
-	for (it; it < _buffer.begin() + textSectionHeader->VirtualAddress + textSectionHeader->Misc.VirtualSize; it++)
-	{
-		if (static_cast<int>(*it) == 0x8D && static_cast<int>(*(it + 1)) == 0x04 && static_cast<int>(*(it + 2)) == 0x3B)
+	_textSection.assign(textSectionStartIt, textSectionEndIt);
+}
+
+void PortableExecutable::CreateStrings()
+{
+	auto rdataSectionHeaderIt = std::find_if(_sectionsHeaders.begin(), _sectionsHeaders.end(), [](const IMAGE_SECTION_HEADER* sectionHeader)
 		{
-			break;
-		}
+			char nameDestination[9] = {};
+			std::memcpy(nameDestination, sectionHeader->Name, sizeof(sectionHeader->Name));
+			return std::strcmp(nameDestination, ".rdata") == 0;
+		});
+
+	if (rdataSectionHeaderIt == _sectionsHeaders.end())
+	{
+		throw std::runtime_error("Unable to find .rdata section header.");
 	}
 
-	std::cout << "Result: " << std::hex << static_cast<int>(*it) << std::endl;
+	IMAGE_SECTION_HEADER* rdataSectionHeader = *rdataSectionHeaderIt;
+
+	auto rdataSectionStartIt = _buffer.begin() + rdataSectionHeader->VirtualAddress;
+
+	_strings.clear();
+	for (size_t i = 0; i < rdataSectionHeader->Misc.VirtualSize; i++)
+	{
+		unsigned char* current = reinterpret_cast<unsigned char*>(std::to_address(rdataSectionStartIt + i));
+		if (std::isprint(*current))
+		{
+			auto stringStartIt = rdataSectionStartIt + i;
+			size_t size = 0;
+			while (*current != '\0' && std::isprint(*current))
+			{
+				current = reinterpret_cast<unsigned char*>(std::to_address(rdataSectionStartIt + ++i));
+				size++;
+			}
+
+			if (size >= 4)
+			{
+				_strings.push_back(StringWrapper{ std::to_address(stringStartIt), size});
+			}
+		}
+	}
 }
 
 bool PortableExecutable::IsImageFile() const
 {
-	constexpr std::array peImageSignature = {std::byte(0x50), std::byte(0x45), std::byte(0x00), std::byte(0x00)};
+	constexpr std::array peImageSignature = { BYTE(0x50), BYTE(0x45), BYTE(0x00), BYTE(0x00) };
 
 	if (!CheckBounds(sizeof(IMAGE_DOS_HEADER)))
 	{
@@ -137,12 +174,12 @@ bool PortableExecutable::IsImageFile() const
 
 	LONG* peImageOffset = reinterpret_cast<LONG*>(std::to_address(_bufferIt) + 0x3C);
 
-	if (*peImageOffset < 0 || !CheckBounds(*peImageOffset + sizeof(LONG)))
+	if (!CheckBounds(*peImageOffset + sizeof(4)))
 	{
 		throw std::runtime_error("Invalid PE header offset.");
 	}
 
-	return std::ranges::equal(peImageSignature.begin(), peImageSignature.end(), _bufferIt + *peImageOffset, _bufferIt + *peImageOffset + sizeof(LONG));
+	return std::ranges::equal(peImageSignature.begin(), peImageSignature.end(), _bufferIt + *peImageOffset, _bufferIt + *peImageOffset + sizeof(4));
 }
 
 bool PortableExecutable::CheckBounds(size_t size) const

@@ -5,6 +5,7 @@
 
 #include <ProcessManager.h>
 #include <SnapshotHelper.h>
+#include <ModuleWrapper.h>
 
 ProcessManager::ProcessManager(const std::wstring& processName) : _processName(processName)
 {
@@ -25,7 +26,7 @@ ProcessManager::~ProcessManager()
 }
 
 
-std::vector<std::byte> ProcessManager::ReadBaseModuleMemory() const
+ModuleWrapper ProcessManager::ReadBaseModuleMemory() const
 {
 	std::vector<MODULEENTRY32> processModules = ReadSnapshotEntries<MODULEENTRY32>(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, _processId);
 	if (processModules.empty())
@@ -35,7 +36,7 @@ std::vector<std::byte> ProcessManager::ReadBaseModuleMemory() const
 
 	const MODULEENTRY32& baseModuleEntry = processModules[0];
 
-	std::vector<std::byte> buffer(baseModuleEntry.modBaseSize);
+	std::vector<BYTE> buffer(baseModuleEntry.modBaseSize);
 	SIZE_T bufferSize;
 	if (!ReadProcessMemory(_processHandle, baseModuleEntry.modBaseAddr, buffer.data(), baseModuleEntry.modBaseSize, &bufferSize))
 	{
@@ -47,7 +48,7 @@ std::vector<std::byte> ProcessManager::ReadBaseModuleMemory() const
 		throw std::runtime_error("Unable to read full memory of base module.");
 	}
 
-	return buffer;
+	return ModuleWrapper{ buffer, baseModuleEntry.modBaseAddr };
 }
 
 DWORD ProcessManager::ReadProcessId(const std::wstring& processName) const

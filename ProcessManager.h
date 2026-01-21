@@ -4,6 +4,8 @@
 #include <windows.h>
 #include <vector>
 
+#include <ModuleWrapper.h>
+
 class ProcessManager
 {
 public:
@@ -14,7 +16,7 @@ public:
 	ProcessManager& operator=(ProcessManager&& other) = delete;
 	~ProcessManager();
 	const std::wstring& GetProcessName() const { return _processName; }
-	std::vector<std::byte> ReadBaseModuleMemory() const;
+	ModuleWrapper ReadBaseModuleMemory() const;
 private:
 	DWORD ReadProcessId(const std::wstring& processName) const;
 	const std::wstring _processName;
