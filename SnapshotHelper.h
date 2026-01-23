@@ -1,9 +1,6 @@
 #pragma once
 
-#include <Windows.h>
-#include <TlHelp32.h>
-#include <vector>
-#include <format>
+#include "pch.h"
 
 template<typename T>
 concept SnapshotEntry = std::is_same_v<T, PROCESSENTRY32> || std::is_same_v<T, MODULEENTRY32>;

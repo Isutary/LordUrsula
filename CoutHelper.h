@@ -1,7 +1,6 @@
 #pragma once
 
-#include <windows.h>
-#include <span>
+#include "pch.h"
 
 template<typename T>
 concept IndexableWithSize = requires(const T container, std::size_t index)

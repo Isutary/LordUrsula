@@ -1,8 +1,4 @@
-#include <iostream>
-#include <iomanip>
-#include <algorithm>
-#include <array>
-#include <cstring>
+#include "pch.h"
 
 #include <PortableExecutable.h>
 #include <ModuleWrapper.h>

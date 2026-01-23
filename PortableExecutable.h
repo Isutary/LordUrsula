@@ -1,8 +1,6 @@
 #pragma once
 
-#include <windows.h>
-#include <vector>
-#include <span>
+#include "pch.h"
 
 #include <ModuleWrapper.h>
 #include <StringWrapper.h>

@@ -1,6 +1,4 @@
-#include <iostream>
-#include <memory>
-#include <string>
+#include "pch.h"
 
 #include <ProcessManager.h>
 #include <PortableExecutable.h>

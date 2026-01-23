@@ -1,7 +1,4 @@
-#include <windows.h>
-#include <TlHelp32.h>
-#include <stdexcept>
-#include <vector>
+#include "pch.h"
 
 #include <ProcessManager.h>
 #include <SnapshotHelper.h>
