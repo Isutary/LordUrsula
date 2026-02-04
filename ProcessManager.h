@@ -15,6 +15,7 @@ public:
 	~ProcessManager();
 	const std::wstring& GetProcessName() const { return _processName; }
 	ModuleWrapper ReadBaseModuleMemory() const;
+	void LoadTargetLibrary(const std::wstring& targetPath) const;
 private:
 	DWORD ReadProcessId(const std::wstring& processName) const;
 	const std::wstring _processName;

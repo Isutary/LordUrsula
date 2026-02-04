@@ -9,6 +9,8 @@ int main(int, char* [])
 	{
 		std::unique_ptr<ProcessManager> processManager = std::make_unique<ProcessManager>(L"ConsoleAppTarget.exe");
 
+		processManager->LoadTargetLibrary(L"C:\\Projects\\Visual Studio\\TargetDLL\\x64\\Debug\\TargetDLL.dll");
+	
 		std::unique_ptr<PortableExecutable> portableExecutable = std::make_unique<PortableExecutable>(processManager->ReadBaseModuleMemory());
 	}
 	catch (const std::exception& ex)

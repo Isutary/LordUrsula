@@ -14,6 +14,7 @@ void Print(const Container& buffer)
 {
 	auto restore_flags = std::cout.flags();
 	auto restore_fill = std::cout.fill();
+
 	std::cout << std::hex << std::setfill('0') << std::uppercase;
 	for (int i = 0; i < buffer.size(); i++)
 	{
