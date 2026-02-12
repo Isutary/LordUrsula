@@ -19,7 +19,10 @@ PortableExecutable::PortableExecutable(ModuleWrapper moduleWrapper) : _buffer(st
 	CreateOptionalHeader();
 	CreateSectionsHeaders();
 	CreateTextSection();
+	CreatePDataSection();
 	CreateStrings();
+	GetSumEntryPointAddress();
+	Foo();
 }
 
 PortableExecutable::~PortableExecutable()
@@ -97,19 +100,7 @@ void PortableExecutable::CreateSectionsHeaders()
 
 void PortableExecutable::CreateTextSection()
 {
-	auto textSectionHeaderIt = std::find_if(_sectionsHeaders.begin(), _sectionsHeaders.end(), [](const IMAGE_SECTION_HEADER* sectionHeader)
-		{
-			char nameDestination[9] = {};
-			std::memcpy(nameDestination, sectionHeader->Name, sizeof(sectionHeader->Name));
-			return std::strcmp(nameDestination, ".text") == 0;
-		});
-
-	if (textSectionHeaderIt == _sectionsHeaders.end())
-	{
-		throw std::runtime_error("Unable to find .text section header.");
-	}
-
-	IMAGE_SECTION_HEADER* textSectionHeader = *textSectionHeaderIt;
+	IMAGE_SECTION_HEADER* textSectionHeader = FindSectionHeader(".text");
 
 	_textSection.reserve(textSectionHeader->Misc.VirtualSize);
 
@@ -119,21 +110,23 @@ void PortableExecutable::CreateTextSection()
 	_textSection.assign(textSectionStartIt, textSectionEndIt);
 }
 
+void PortableExecutable::CreatePDataSection()
+{
+	IMAGE_SECTION_HEADER* pdataSectionHeader = FindSectionHeader(".pdata");
+
+	auto pdataSectionStartIt = _buffer.begin() + pdataSectionHeader->VirtualAddress;
+	auto pdataSectionEndIt = pdataSectionStartIt + pdataSectionHeader->Misc.VirtualSize;
+
+	_functionEntries.reserve(pdataSectionHeader->Misc.VirtualSize / sizeof(RUNTIME_FUNCTION));
+	for (pdataSectionStartIt; pdataSectionStartIt != pdataSectionEndIt; pdataSectionStartIt += sizeof(RUNTIME_FUNCTION))
+	{
+		_functionEntries.push_back(reinterpret_cast<RUNTIME_FUNCTION*>(std::to_address(pdataSectionStartIt)));
+	}
+}
+
 void PortableExecutable::CreateStrings()
 {
-	auto rdataSectionHeaderIt = std::find_if(_sectionsHeaders.begin(), _sectionsHeaders.end(), [](const IMAGE_SECTION_HEADER* sectionHeader)
-		{
-			char nameDestination[9] = {};
-			std::memcpy(nameDestination, sectionHeader->Name, sizeof(sectionHeader->Name));
-			return std::strcmp(nameDestination, ".rdata") == 0;
-		});
-
-	if (rdataSectionHeaderIt == _sectionsHeaders.end())
-	{
-		throw std::runtime_error("Unable to find .rdata section header.");
-	}
-
-	IMAGE_SECTION_HEADER* rdataSectionHeader = *rdataSectionHeaderIt;
+	IMAGE_SECTION_HEADER* rdataSectionHeader = FindSectionHeader(".rdata");
 
 	auto rdataSectionStartIt = _buffer.begin() + rdataSectionHeader->VirtualAddress;
 
@@ -153,8 +146,40 @@ void PortableExecutable::CreateStrings()
 
 			if (size >= 4)
 			{
-				_strings.push_back(StringWrapper{ std::to_address(stringStartIt), size});
+				_strings.push_back(StringWrapper{ std::to_address(stringStartIt), size, });
 			}
+		}
+	}
+}
+
+ptrdiff_t PortableExecutable::GetSumEntryPointAddress() const
+{
+	auto sumInputStringWrapperIt = std::find_if(_strings.begin(), _strings.end(), [](const StringWrapper& stringWrapper) 
+		{
+			return std::string_view(reinterpret_cast<const char*>(stringWrapper.start), stringWrapper.size) == "Inside sum";
+		});
+
+	if (sumInputStringWrapperIt == _strings.end())
+	{
+		throw std::runtime_error("Unable to find 'Inside sum' string.");
+	}
+
+	StringWrapper sumInputStringWrapper = *sumInputStringWrapperIt;
+
+	ptrdiff_t inputSumStringRelativeOffset = sumInputStringWrapper.start - _buffer.data();
+
+	return inputSumStringRelativeOffset;
+}
+
+void PortableExecutable::Foo()
+{
+	constexpr std::array leaOpCode = { BYTE(0x48), BYTE(0x8D), BYTE(0x15) };
+
+	for (size_t i = 0; i < _textSection.size() - 3; i++)
+	{
+		if (std::ranges::equal(leaOpCode.begin(), leaOpCode.end(), &_textSection[i], &_textSection[i + 3]))
+		{
+//			std::cout << "Found one" << std::endl;
 		}
 	}
 }
@@ -176,6 +201,23 @@ bool PortableExecutable::IsImageFile() const
 	}
 
 	return std::ranges::equal(peImageSignature.begin(), peImageSignature.end(), _bufferIt + *peImageOffset, _bufferIt + *peImageOffset + sizeof(4));
+}
+
+IMAGE_SECTION_HEADER* PortableExecutable::FindSectionHeader(const char* name)
+{
+	auto rdataSectionHeaderIt = std::find_if(_sectionsHeaders.begin(), _sectionsHeaders.end(), [name](const IMAGE_SECTION_HEADER* sectionHeader)
+		{
+			char nameDestination[9] = {};
+			std::memcpy(nameDestination, sectionHeader->Name, sizeof(sectionHeader->Name));
+			return std::strcmp(nameDestination, name) == 0;
+		});
+
+	if (rdataSectionHeaderIt == _sectionsHeaders.end())
+	{
+		throw std::runtime_error(std::format("Unable to find {} section header.", name));
+	}
+
+	return *rdataSectionHeaderIt;
 }
 
 bool PortableExecutable::CheckBounds(size_t size) const
