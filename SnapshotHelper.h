@@ -1,9 +1,17 @@
 #pragma once
 
-#include "pch.h"
+#include <windows.h>
+#include <TlHelp32.h>
+#include <WindowsException.h>
 
 template<typename T>
 concept SnapshotEntry = std::is_same_v<T, PROCESSENTRY32> || std::is_same_v<T, MODULEENTRY32>;
+
+template<typename T>
+bool First(HANDLE handle, T& entry);
+
+template<typename T>
+bool Next(HANDLE handle, T& entry);
 
 template <SnapshotEntry T>
 std::vector<T> ReadSnapshotEntries(DWORD flags, DWORD processId = 0)
@@ -11,7 +19,7 @@ std::vector<T> ReadSnapshotEntries(DWORD flags, DWORD processId = 0)
 	HANDLE handle = CreateToolhelp32Snapshot(flags, processId);
 	if (handle == INVALID_HANDLE_VALUE)
 	{
-		throw std::runtime_error(std::format("Failed to create snapshot for process {0} with flags {1:X}.", processId, flags));
+		throw Exceptions::WindowsException(L"Failed to create snapshot for process with ID '{0}' and flags '{1}'.", processId, flags);
 	}
 
 	T entry;
@@ -20,7 +28,7 @@ std::vector<T> ReadSnapshotEntries(DWORD flags, DWORD processId = 0)
 	if (!First(handle, entry))
 	{
 		CloseHandle(handle);
-		throw std::runtime_error(std::format("Failed to find first entry in snapshot for process {0} with flags {1:X}.", processId, flags));
+		throw Exceptions::WindowsException(L"Failed to find first entry in snapshot for process with ID '{0}' and flags '{1}'.", processId, flags);
 	}
 
 	std::vector<T> entries;
@@ -40,13 +48,10 @@ bool First(HANDLE handle, T& entry)
 	{
 		return Process32First(handle, &entry);
 	}
-	else if constexpr (std::is_same_v<T, MODULEENTRY32>)
+	
+	if constexpr (std::is_same_v<T, MODULEENTRY32>)
 	{
 		return Module32First(handle, &entry);
-	}
-	else
-	{
-		static_assert(false, "Unsupported snapshot type.");
 	}
 }
 
@@ -57,12 +62,9 @@ bool Next(HANDLE handle, T& entry)
 	{
 		return Process32Next(handle, &entry);
 	}
-	else if constexpr (std::is_same_v<T, MODULEENTRY32>)
+	
+	if constexpr (std::is_same_v<T, MODULEENTRY32>)
 	{
 		return Module32Next(handle, &entry);
-	}
-	else
-	{
-		static_assert(false, "Unsupported snapshot type.");
 	}
 }

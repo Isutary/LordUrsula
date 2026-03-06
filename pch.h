@@ -3,7 +3,6 @@
 #ifndef PCH_H
 #define PCH_H
 
-// add headers that you want to pre-compile here
 #include <Windows.h>
 #include <vector>
 #include <string>
@@ -15,5 +14,6 @@
 #include <TlHelp32.h>
 #include <stdexcept>
 #include <memory>
+#include <cstddef>
 
 #endif //PCH_H

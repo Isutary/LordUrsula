@@ -19,12 +19,21 @@
     <Filter Include="Header Files\Models">
       <UniqueIdentifier>{1618bc1b-a1ed-4d92-a181-272f6f8bfb9b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Managers">
+      <UniqueIdentifier>{690fd111-2212-4da2-94eb-f6432335780a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Managers">
+      <UniqueIdentifier>{6f8a3489-141f-4a68-a77a-18e91c71ce2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Managers\Interfaces">
+      <UniqueIdentifier>{485b6f9b-2bfe-4df6-8d6b-8df7f3d03146}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Exceptions">
+      <UniqueIdentifier>{1c7352f5-c3ad-4423-b369-1a89648236ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LordUrsula.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcessManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="PortableExecutable.cpp">
@@ -33,11 +42,14 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ProcessManager.cpp">
+      <Filter>Source Files\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="ModuleManager.cpp">
+      <Filter>Source Files\Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ProcessManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="PortableExecutable.h">
       <Filter>Header Files\Models</Filter>
     </ClInclude>
@@ -50,11 +62,26 @@
     <ClInclude Include="ModuleWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="StringWrapper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IProcessManager.h">
+      <Filter>Header Files\Managers\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessManager.h">
+      <Filter>Header Files\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="IModuleManager.h">
+      <Filter>Header Files\Managers\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="ModuleManager.h">
+      <Filter>Header Files\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsException.h">
+      <Filter>Header Files\Exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception.h">
+      <Filter>Header Files\Exceptions</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
