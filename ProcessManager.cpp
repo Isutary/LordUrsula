@@ -34,22 +34,22 @@ namespace Managers
 		std::vector<MODULEENTRY32> processModules = ReadSnapshotEntries<MODULEENTRY32>(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, static_cast<unsigned long>(_processId));
 		if (processModules.empty())
 		{
-			throw Exceptions::WindowsException(L"{0}No modules loaded.", GetProcessIdentifier());
+			throw Exceptions::WindowsException(L"{0} - No modules loaded.", GetProcessIdentifier());
 		}
 
-		auto moduleEntry = std::find_if(processModules.begin(), processModules.end(), [&moduleName](const MODULEENTRY32& m)
+		std::vector<MODULEENTRY32>::iterator moduleEntry = std::find_if(processModules.begin(), processModules.end(), [&moduleName](const MODULEENTRY32& m)
 			{
-				return std::wstring(m.szExePath) == moduleName;
+				return std::wstring(m.szExePath).find(moduleName) != std::wstring::npos;
 			});
 
 		if (moduleEntry == processModules.end())
 		{
-			throw Exceptions::Exception(L"{0}Unable to find '{1}' module.", GetProcessIdentifier(), moduleName);
+			throw Exceptions::Exception(L"{0} - Unable to find '{1}' module.", GetProcessIdentifier(), moduleName);
 		}
 
 		std::vector<std::byte> buffer(moduleEntry->modBaseSize);
 		ReadMemory(reinterpret_cast<std::uintptr_t > (moduleEntry->modBaseAddr), buffer);
-		
+
 		return ModuleWrapper(std::move(buffer), reinterpret_cast<std::uintptr_t>(moduleEntry->modBaseAddr));
 	}
 
@@ -58,12 +58,12 @@ namespace Managers
 		std::size_t numberOfBytesWritten;
 		if (!WriteProcessMemory(_processHandle, reinterpret_cast<void*>(baseAddress), buffer.data(), buffer.size(), &numberOfBytesWritten))
 		{
-			throw Exceptions::WindowsException(L"{0}Unable to write bytes.", GetProcessIdentifier());
+			throw Exceptions::WindowsException(L"{0} - Unable to write bytes.", GetProcessIdentifier());
 		}
 
 		if (buffer.size() != numberOfBytesWritten)
 		{
-			throw Exceptions::Exception(L"{0}Unable to write all bytes. Wrote {1} out of {2}", GetProcessIdentifier(), numberOfBytesWritten, buffer.size());
+			throw Exceptions::Exception(L"{0} - Unable to write all bytes. Wrote {1} out of {2}", GetProcessIdentifier(), numberOfBytesWritten, buffer.size());
 		}
 	}
 
@@ -72,12 +72,12 @@ namespace Managers
 		std::size_t numberOfBytesRead;
 		if (!ReadProcessMemory(_processHandle, reinterpret_cast<void*>(baseAddress), buffer.data(), buffer.size(), &numberOfBytesRead))
 		{
-			throw Exceptions::WindowsException(L"{0}Unable to read process memory.", GetProcessIdentifier());
+			throw Exceptions::WindowsException(L"{0} - Unable to read process memory.", GetProcessIdentifier());
 		}
 
 		if (buffer.size() != numberOfBytesRead)
 		{
-			throw Exceptions::Exception(L"{0}Unable to read all bytes. Read {1} out of {2}", GetProcessIdentifier(), numberOfBytesRead, buffer.size());
+			throw Exceptions::Exception(L"{0} - Unable to read all bytes. Read {1} out of {2}", GetProcessIdentifier(), numberOfBytesRead, buffer.size());
 		}
 	}
 
@@ -86,7 +86,7 @@ namespace Managers
 		void* allocatedMemoryBase = VirtualAllocEx(_processHandle, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 		if (allocatedMemoryBase == nullptr)
 		{
-			throw Exceptions::WindowsException(L"{0}Unable to allocate virtual memory. Attempted to allocate {0} bytes.", GetProcessIdentifier(), size);
+			throw Exceptions::WindowsException(L"{0} - Unable to allocate virtual memory. Attempted to allocate {0} bytes.", GetProcessIdentifier(), size);
 		}
 
 		return reinterpret_cast<std::uintptr_t>(allocatedMemoryBase);
@@ -111,7 +111,7 @@ namespace Managers
 		void* remoteThreadHandle = CreateRemoteThreadEx(_processHandle, nullptr, 0, (LPTHREAD_START_ROUTINE)functionBaseAddress, reinterpret_cast<void*>(parameterAddress), 0, nullptr, nullptr);
 		if (remoteThreadHandle == nullptr)
 		{
-			throw Exceptions::WindowsException(L"{0}Unable to create remote thread.", GetProcessIdentifier());
+			throw Exceptions::WindowsException(L"{0} - Unable to create remote thread.", GetProcessIdentifier());
 		}
 
 		return reinterpret_cast<std::uintptr_t>(remoteThreadHandle);
@@ -126,7 +126,7 @@ namespace Managers
 	{
 		std::vector<PROCESSENTRY32> processEntries = ReadSnapshotEntries<PROCESSENTRY32>(TH32CS_SNAPPROCESS);
 
-		auto processEntry = std::find_if(processEntries.begin(), processEntries.end(), [&processName](const PROCESSENTRY32& p)
+		std::vector<PROCESSENTRY32>::iterator processEntry = std::find_if(processEntries.begin(), processEntries.end(), [&processName](const PROCESSENTRY32& p)
 			{
 				return std::wstring(p.szExeFile) == processName;
 			});

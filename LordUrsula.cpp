@@ -12,9 +12,14 @@ int main(int, char* [])
 	using ProcessManager = Managers::ProcessManager;
 	using IModuleManager = Managers::Interfaces::IModuleManager;
 	using ModuleManager = Managers::ModuleManager;
+	using PortableExecutable = Models::PortableExecutable;
+
 	try
 	{
 		std::unique_ptr<IProcessManager> processManager = std::make_unique<ProcessManager>(L"ConsoleAppTarget.exe");
+		ModuleWrapper a = processManager->ReadModuleMemory(L"ConsoleAppTarget.exe");
+		std::cout << a.BaseAddress();
+		//std::unique_ptr<PortableExecutable> portableExecutable = std::make_unique<PortableExecutable>(processManager->ReadModuleMemory(L"ConsoleAppTarget.exe"));
 	}
 	catch (const std::exception& ex)
 	{

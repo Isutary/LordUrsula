@@ -31,6 +31,9 @@
     <Filter Include="Header Files\Exceptions">
       <UniqueIdentifier>{1c7352f5-c3ad-4423-b369-1a89648236ac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Helpers">
+      <UniqueIdentifier>{7150b86c-0064-41e1-bea1-4c7026d7d901}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LordUrsula.cpp">
@@ -52,12 +55,6 @@
   <ItemGroup>
     <ClInclude Include="PortableExecutable.h">
       <Filter>Header Files\Models</Filter>
-    </ClInclude>
-    <ClInclude Include="SnapshotHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CoutHelper.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ModuleWrapper.h">
       <Filter>Header Files</Filter>
@@ -82,6 +79,12 @@
     </ClInclude>
     <ClInclude Include="Exception.h">
       <Filter>Header Files\Exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="CoutHelper.h">
+      <Filter>Header Files\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="SnapshotHelper.h">
+      <Filter>Header Files\Helpers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
