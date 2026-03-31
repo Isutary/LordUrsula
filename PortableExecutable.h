@@ -26,7 +26,7 @@ namespace Models
 		std::span<std::byte> _textSection;
 		std::span<std::byte> _pDataSection;
 		std::vector<IMAGE_SECTION_HEADER*> _imageSectionsHeaders;
-		std::span<std::byte> _buffer;
 		ModuleWrapper _moduleWrapper;
+		std::span<std::byte> _buffer;
 	};
 }

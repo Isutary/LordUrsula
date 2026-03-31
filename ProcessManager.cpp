@@ -49,7 +49,7 @@ namespace Managers
 
 		std::vector<std::byte> buffer(moduleEntry->modBaseSize);
 		ReadMemory(reinterpret_cast<std::uintptr_t > (moduleEntry->modBaseAddr), buffer);
-
+	
 		return ModuleWrapper(std::move(buffer), reinterpret_cast<std::uintptr_t>(moduleEntry->modBaseAddr));
 	}
 

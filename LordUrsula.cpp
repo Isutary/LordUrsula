@@ -17,9 +17,8 @@ int main(int, char* [])
 	try
 	{
 		std::unique_ptr<IProcessManager> processManager = std::make_unique<ProcessManager>(L"ConsoleAppTarget.exe");
-		ModuleWrapper a = processManager->ReadModuleMemory(L"ConsoleAppTarget.exe");
-		std::cout << a.BaseAddress();
-		//std::unique_ptr<PortableExecutable> portableExecutable = std::make_unique<PortableExecutable>(processManager->ReadModuleMemory(L"ConsoleAppTarget.exe"));
+
+		std::unique_ptr<PortableExecutable> portableExecutable = std::make_unique<PortableExecutable>(processManager->ReadModuleMemory(L"ConsoleAppTarget.exe"));
 	}
 	catch (const std::exception& ex)
 	{

@@ -8,7 +8,6 @@ namespace Models
 {
 	PortableExecutable::PortableExecutable(ModuleWrapper moduleWrapper) : _moduleWrapper(std::move(moduleWrapper)), _buffer(_moduleWrapper.Data())
 	{
-		std::cout << "_buffer size " << _buffer.size() << std::endl;
 		if (!IsImageFile())
 		{
 			throw std::runtime_error("File is not a PE.");
@@ -96,7 +95,7 @@ namespace Models
 		for (std::uint16_t i = 0; i < _imageFileHeader->NumberOfSections; i++)
 		{
 			std::size_t currentImageSectionHeaderOffset = imageSectionHeadersOffset + i * sizeof(IMAGE_SECTION_HEADER);
-			imageSectionsHeaders.push_back(reinterpret_cast<IMAGE_SECTION_HEADER*>(std::to_address(_buffer.begin() + currentImageSectionHeaderOffset)));
+			imageSectionsHeaders[i] = reinterpret_cast<IMAGE_SECTION_HEADER*>(std::to_address(_buffer.begin() + currentImageSectionHeaderOffset));
 		}
 
 		return imageSectionsHeaders;
