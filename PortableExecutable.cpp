@@ -1,12 +1,12 @@
-#include "pch.h"
+#include <pch.h>
 
 #include <PortableExecutable.h>
-#include <ModuleWrapper.h>
+#include <Module.h>
 #include <CoutHelper.h>
 
 namespace Models
 {
-	PortableExecutable::PortableExecutable(ModuleWrapper moduleWrapper) : _moduleWrapper(std::move(moduleWrapper)), _buffer(_moduleWrapper.Data())
+	PortableExecutable::PortableExecutable(Models::Module moduleWrapper) : _moduleWrapper(std::move(moduleWrapper)), _buffer(_moduleWrapper.Data())
 	{
 		if (!IsImageFile())
 		{
@@ -21,14 +21,23 @@ namespace Models
 		_pDataSection = CreateSection(".pdata");
 	}
 
-	PortableExecutable::~PortableExecutable()
-	{}
+	std::span<const IMAGE_RUNTIME_FUNCTION_ENTRY> PortableExecutable::GetAllImageRuntimeFunctionEntries() const
+	{
+		// Calculate number of IMAGE_RUNTIME_FUNCTION_ENTRY.
+		std::size_t numberOfImageRuntimeFunctionEntries = _pDataSection.size() / sizeof(IMAGE_RUNTIME_FUNCTION_ENTRY);
+
+		// Reinterpret raw bytes as IMAGE_RUNTIME_FUNCTION_ENTRY.
+		const IMAGE_RUNTIME_FUNCTION_ENTRY* data = reinterpret_cast<const IMAGE_RUNTIME_FUNCTION_ENTRY*>(_pDataSection.data());
+
+		// Create span of all IMAGE_RUNTIME_FUNCTION_ENTRY.
+		return std::span<const IMAGE_RUNTIME_FUNCTION_ENTRY>(data, numberOfImageRuntimeFunctionEntries);
+	}
 
 	IMAGE_DOS_HEADER* PortableExecutable::CreateDosHeader() const
 	{
 		// Size of buffer is validated in IsImageFile method.
 		// Create IMAGE_DOS_HEADER.
-		return reinterpret_cast<IMAGE_DOS_HEADER*>(std::to_address(_buffer.begin()));
+		return reinterpret_cast<IMAGE_DOS_HEADER*>(_buffer.data());
 	}
 
 	IMAGE_FILE_HEADER* PortableExecutable::CreateFileHeader() const
@@ -44,7 +53,7 @@ namespace Models
 		}
 
 		// Create IMAGE_FILE_HEADER.
-		return reinterpret_cast<IMAGE_FILE_HEADER*>(std::to_address(_buffer.begin() + imageFileHeaderOffset));
+		return reinterpret_cast<IMAGE_FILE_HEADER*>(_buffer.data() + imageFileHeaderOffset);
 	}
 
 	IMAGE_OPTIONAL_HEADER64* PortableExecutable::CreateOptionalHeader() const
@@ -62,7 +71,7 @@ namespace Models
 
 		// The optional header magic number determines whether an image is a PE32 or PE32+ executable.
 		// The magic number is defined by first 2 bytes of the IMAGE_OPTIONAL_HEADER.
-		std::uint16_t peFormat = *reinterpret_cast<std::uint16_t*>(std::to_address(_buffer.begin() + imageOptionalHeaderOffset));
+		std::uint16_t peFormat = *reinterpret_cast<std::uint16_t*>(_buffer.data() + imageOptionalHeaderOffset);
 
 		// Only 64-bit modules are supported.
 		if (peFormat != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
@@ -71,7 +80,7 @@ namespace Models
 		}
 			
 		// Create IMAGE_OPTIONAL_HEADER64.
-		return reinterpret_cast<IMAGE_OPTIONAL_HEADER64*>(std::to_address(_buffer.begin() + imageOptionalHeaderOffset));
+		return reinterpret_cast<IMAGE_OPTIONAL_HEADER64*>(_buffer.data() + imageOptionalHeaderOffset);
 	}
 
 	std::vector<IMAGE_SECTION_HEADER*> PortableExecutable::CreateSectionsHeaders() const
@@ -95,7 +104,7 @@ namespace Models
 		for (std::uint16_t i = 0; i < _imageFileHeader->NumberOfSections; i++)
 		{
 			std::size_t currentImageSectionHeaderOffset = imageSectionHeadersOffset + i * sizeof(IMAGE_SECTION_HEADER);
-			imageSectionsHeaders[i] = reinterpret_cast<IMAGE_SECTION_HEADER*>(std::to_address(_buffer.begin() + currentImageSectionHeaderOffset));
+			imageSectionsHeaders[i] = reinterpret_cast<IMAGE_SECTION_HEADER*>(_buffer.data() + currentImageSectionHeaderOffset);
 		}
 
 		return imageSectionsHeaders;
@@ -104,19 +113,19 @@ namespace Models
 	std::span<std::byte> PortableExecutable::CreateSection(const char* sectionName) const
 	{
 		// Find IMAGE_SECTION_HEADER with name specified name.
-		IMAGE_SECTION_HEADER* textSectionHeader = FindSectionHeader(sectionName);
+		IMAGE_SECTION_HEADER* sectionHeader = FindSectionHeader(sectionName);
 
 		// IMAGE_SECTION_HEADER.VirtualAddress defines address of the first byte of the section, relative to the image base.
-		std::span<std::byte>::iterator textSectionStartIt = _buffer.begin() + textSectionHeader->VirtualAddress;
+		std::span<std::byte>::iterator sectionStartIt = _buffer.begin() + sectionHeader->VirtualAddress;
 
 		// IMAGE_SECTION_HEADER.VirtualSize defines total size of the section.
-		std::span<std::byte>::iterator textSectionEndIt = textSectionStartIt + textSectionHeader->Misc.VirtualSize;
+		std::span<std::byte>::iterator sectionEndIt = sectionStartIt + sectionHeader->Misc.VirtualSize;
 
 		// Calculate size of the section.
-		std::ptrdiff_t sizeOfTextSection = textSectionEndIt - textSectionStartIt;
+		std::ptrdiff_t sizeOfSection = sectionEndIt - sectionStartIt;
 
 		// Create span containing the section.
-		return std::span<std::byte>(textSectionStartIt, sizeOfTextSection);
+		return std::span<std::byte>(sectionStartIt, sizeOfSection);
 	}
 
 	bool PortableExecutable::IsImageFile() const
@@ -129,7 +138,7 @@ namespace Models
 		}
 
 		// At location 60(0x3C), the stub has the file offset to the PE signature. 
-		std::uint32_t peSignatureOffset = *reinterpret_cast<std::uint32_t*>(std::to_address(_buffer.begin() + 0x3C));
+		std::uint32_t peSignatureOffset = *reinterpret_cast<std::uint32_t*>(_buffer.data() + 0x3C);
 
 		// Validate the buffer has enough bytes to contain the PE signature.
 		if (_buffer.size() < static_cast<std::size_t>(peSignatureOffset) + 4)

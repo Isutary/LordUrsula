@@ -137,6 +137,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CodeBuilder.cpp" />
     <ClCompile Include="LordUrsula.cpp" />
     <ClCompile Include="ModuleManager.cpp" />
     <ClCompile Include="pch.cpp">
@@ -149,11 +150,13 @@
     <ClCompile Include="ProcessManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CodeBuilder.h" />
     <ClInclude Include="CoutHelper.h" />
     <ClInclude Include="Exception.h" />
+    <ClInclude Include="ICodeBuilder.h" />
     <ClInclude Include="IModuleManager.h" />
     <ClInclude Include="ModuleManager.h" />
-    <ClInclude Include="ModuleWrapper.h" />
+    <ClInclude Include="Module.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PortableExecutable.h" />
     <ClInclude Include="IProcessManager.h" />

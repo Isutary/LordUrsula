@@ -1,10 +1,12 @@
-#include "pch.h"
+#include <pch.h>
 
 #include <IProcessManager.h>
 #include <ProcessManager.h>
 #include <IModuleManager.h>
 #include <ModuleManager.h>
 #include <PortableExecutable.h>
+#include <CoutHelper.h>
+#include <fstream>
 
 int main(int, char* [])
 {
@@ -18,7 +20,11 @@ int main(int, char* [])
 	{
 		std::unique_ptr<IProcessManager> processManager = std::make_unique<ProcessManager>(L"ConsoleAppTarget.exe");
 
+		ModuleManager kernelModuleManager {L"kernel32.dll"};
+		processManager->LoadRemoteLibrary(L"C:\\Projects\\Visual Studio\\TargetDLL\\x64\\Release\\TargetDLL.dll", kernelModuleManager);
+
 		std::unique_ptr<PortableExecutable> portableExecutable = std::make_unique<PortableExecutable>(processManager->ReadModuleMemory(L"ConsoleAppTarget.exe"));
+
 	}
 	catch (const std::exception& ex)
 	{

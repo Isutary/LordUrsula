@@ -7,7 +7,7 @@ namespace Managers
 	class ModuleManager : public Interfaces::IModuleManager
 	{
 	public:
-		ModuleManager(const std::wstring& moduleName);
+		explicit ModuleManager(const std::wstring& moduleName);
 		~ModuleManager() override;
 		FARPROC GetFunctionAddress(const std::string& functionName) const override;
 		std::uintptr_t GetBaseAddress() const override { return _moduleBaseAddress; };

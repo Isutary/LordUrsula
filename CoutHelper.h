@@ -1,27 +1,30 @@
 #pragma once
 
-#include "pch.h"
+#include <iostream>
 
-template<typename T>
-concept IndexableWithSize = requires(const T container, std::size_t index)
+namespace Helpers
 {
-    { container[index] } -> std::convertible_to<BYTE>;
-    { container.size() } -> std::convertible_to<std::size_t>;
-};
-
-template<IndexableWithSize Container>
-void Print(const Container& buffer)
-{
-	auto restore_flags = std::cout.flags();
-	auto restore_fill = std::cout.fill();
-
-	std::cout << std::hex << std::setfill('0') << std::uppercase;
-	for (int i = 0; i < buffer.size(); i++)
+	template<typename T>
+	concept IndexableWithSize = requires(const T container, std::size_t index)
 	{
-		if (i != 0 && i % 16 == 0) std::cout << std::endl;
-		std::cout << std::setw(2) << static_cast<int>(buffer[i]) << " ";
-	}
+		{ container[index] } -> std::convertible_to<std::byte>;
+		{ container.size() } -> std::convertible_to<std::size_t>;
+	};
 
-	std::cout.flags(restore_flags);
-	std::cout.fill(restore_fill);
+	template<IndexableWithSize Container>
+	void Print(const Container& buffer)
+	{
+		auto restore_flags = std::cout.flags();
+		auto restore_fill = std::cout.fill();
+
+		std::cout << std::hex << std::setfill('0') << std::uppercase;
+		for (int i = 0; i < buffer.size(); i++)
+		{
+			if (i != 0 && i % 16 == 0) std::cout << std::endl;
+			std::cout << std::setw(2) << static_cast<int>(buffer[i]) << " ";
+		}
+
+		std::cout.flags(restore_flags);
+		std::cout.fill(restore_fill);
+	}
 }

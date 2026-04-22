@@ -34,6 +34,12 @@
     <Filter Include="Header Files\Helpers">
       <UniqueIdentifier>{7150b86c-0064-41e1-bea1-4c7026d7d901}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Builders">
+      <UniqueIdentifier>{34938a28-d274-4da2-bbff-3983d119e21b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Builders\Interfaces">
+      <UniqueIdentifier>{b7d85469-38a4-4d47-bee2-d56645b61dc9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LordUrsula.cpp">
@@ -51,13 +57,13 @@
     <ClCompile Include="ModuleManager.cpp">
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="CodeBuilder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PortableExecutable.h">
       <Filter>Header Files\Models</Filter>
-    </ClInclude>
-    <ClInclude Include="ModuleWrapper.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
@@ -85,6 +91,15 @@
     </ClInclude>
     <ClInclude Include="SnapshotHelper.h">
       <Filter>Header Files\Helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="CodeBuilder.h">
+      <Filter>Header Files\Builders</Filter>
+    </ClInclude>
+    <ClInclude Include="ICodeBuilder.h">
+      <Filter>Header Files\Builders\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>Header Files\Models</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

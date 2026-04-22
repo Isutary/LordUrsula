@@ -29,9 +29,9 @@ namespace Managers
 		}
 	}
 
-	ModuleWrapper ProcessManager::ReadModuleMemory(const std::wstring& moduleName) const
+	Models::Module ProcessManager::ReadModuleMemory(const std::wstring& moduleName) const
 	{
-		std::vector<MODULEENTRY32> processModules = ReadSnapshotEntries<MODULEENTRY32>(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, static_cast<unsigned long>(_processId));
+		std::vector<MODULEENTRY32> processModules = Helpers::ReadSnapshotEntries<MODULEENTRY32>(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, static_cast<unsigned long>(_processId));
 		if (processModules.empty())
 		{
 			throw Exceptions::WindowsException(L"{0} - No modules loaded.", GetProcessIdentifier());
@@ -50,7 +50,25 @@ namespace Managers
 		std::vector<std::byte> buffer(moduleEntry->modBaseSize);
 		ReadMemory(reinterpret_cast<std::uintptr_t > (moduleEntry->modBaseAddr), buffer);
 	
-		return ModuleWrapper(std::move(buffer), reinterpret_cast<std::uintptr_t>(moduleEntry->modBaseAddr));
+		return Models::Module(std::move(buffer), reinterpret_cast<std::uintptr_t>(moduleEntry->modBaseAddr));
+	}
+
+	std::vector<std::wstring> ProcessManager::GetAllModulesNames() const
+	{
+		std::vector<MODULEENTRY32> processModules = Helpers::ReadSnapshotEntries<MODULEENTRY32>(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, static_cast<unsigned long>(_processId));
+		if (processModules.empty())
+		{
+			throw Exceptions::WindowsException(L"{0} - No modules loaded.", GetProcessIdentifier());
+		}
+
+		std::vector<std::wstring> modulesNames;
+
+		for (std::size_t i = 0; i < processModules.size(); i++)
+		{
+			modulesNames.push_back(std::wstring(processModules[i].szExePath));
+		}
+
+		return modulesNames;
 	}
 
 	void ProcessManager::WriteMemory(std::uintptr_t baseAddress, std::span<const std::byte> buffer) const
@@ -124,7 +142,7 @@ namespace Managers
 
 	std::size_t ProcessManager::ReadProcessId(const std::wstring& processName) const
 	{
-		std::vector<PROCESSENTRY32> processEntries = ReadSnapshotEntries<PROCESSENTRY32>(TH32CS_SNAPPROCESS);
+		std::vector<PROCESSENTRY32> processEntries = Helpers::ReadSnapshotEntries<PROCESSENTRY32>(TH32CS_SNAPPROCESS);
 
 		std::vector<PROCESSENTRY32>::iterator processEntry = std::find_if(processEntries.begin(), processEntries.end(), [&processName](const PROCESSENTRY32& p)
 			{

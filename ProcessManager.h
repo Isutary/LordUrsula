@@ -4,7 +4,7 @@
 #include <span>
 
 #include <IProcessManager.h>
-#include <ModuleWrapper.h>
+#include <Module.h>
 
 namespace Managers
 {
@@ -13,7 +13,8 @@ namespace Managers
 	public:
 		ProcessManager(const std::wstring& processName);
 		~ProcessManager() override;
-		ModuleWrapper ReadModuleMemory(const std::wstring& moduleName) const override;
+		Models::Module ReadModuleMemory(const std::wstring& moduleName) const override;
+		std::vector<std::wstring> GetAllModulesNames() const override;
 		void WriteMemory(std::uintptr_t baseAddress, std::span<const std::byte> buffer) const override;
 		void ReadMemory(std::uintptr_t baseAddress, std::span<std::byte> buffer) const override;
 		std::uintptr_t AllocateVirtualMemory(std::size_t size) const override;

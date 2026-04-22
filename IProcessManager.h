@@ -3,7 +3,7 @@
 #include <vector>
 #include <span>
 #include <string>
-#include <ModuleWrapper.h>
+#include <Module.h>
 #include <IModuleManager.h>
 
 namespace Managers::Interfaces
@@ -12,7 +12,8 @@ namespace Managers::Interfaces
 	{
 	public:
 		virtual ~IProcessManager() = default;
-		virtual ModuleWrapper ReadModuleMemory(const std::wstring& moduleName) const = 0;
+		virtual Models::Module ReadModuleMemory(const std::wstring& moduleName) const = 0;
+		virtual std::vector<std::wstring> GetAllModulesNames() const = 0;
 		virtual void WriteMemory(std::uintptr_t baseAddress, std::span<const std::byte> buffer) const = 0;
 		virtual void ReadMemory(std::uintptr_t baseAddress, std::span<std::byte> buffer) const = 0;
 		virtual std::uintptr_t AllocateVirtualMemory(std::size_t size) const = 0;
