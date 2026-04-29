@@ -40,6 +40,9 @@
     <Filter Include="Header Files\Builders\Interfaces">
       <UniqueIdentifier>{b7d85469-38a4-4d47-bee2-d56645b61dc9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Builders">
+      <UniqueIdentifier>{2623c63b-920c-45aa-a801-5be606883bc5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LordUrsula.cpp">
@@ -58,7 +61,7 @@
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
     <ClCompile Include="CodeBuilder.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Builders</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -99,6 +102,9 @@
       <Filter>Header Files\Builders\Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="Module.h">
+      <Filter>Header Files\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Trampoline.h">
       <Filter>Header Files\Models</Filter>
     </ClInclude>
   </ItemGroup>

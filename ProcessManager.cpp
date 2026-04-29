@@ -99,6 +99,11 @@ namespace Managers
 		}
 	}
 
+	/// <summary>
+	/// Allocates virtual memory in the target process.
+	/// </summary>
+	/// <param name="size">The size in bytes of the memory to allocate.</param>
+	/// <returns>The base address of the allocated memory as an unsigned integer pointer. Throws if unable to allocate memory.</returns>
 	std::uintptr_t ProcessManager::AllocateVirtualMemory(std::size_t size) const
 	{
 		void* allocatedMemoryBase = VirtualAllocEx(_processHandle, nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
@@ -112,18 +117,31 @@ namespace Managers
 
 	void ProcessManager::LoadRemoteLibrary(const std::wstring& libraryPath, const Interfaces::IModuleManager& moduleManager) const
 	{
+		// Convert library path to bytes.
 		std::span<const std::byte> buffer = std::as_bytes(std::span{ libraryPath.data(), libraryPath.size() + 1 });
+
+		// Allocate enough memory in process to store path to library.
 		std::uintptr_t allocatedMemoryBase = AllocateVirtualMemory(buffer.size());
 
+		// Write library path in newly allocate memory of the process.
 		WriteMemory(allocatedMemoryBase, buffer);
 
+		// Find address of LoadLibraryW function in specified module.
 		FARPROC loadLibraryWAddress = moduleManager.GetFunctionAddress("LoadLibraryW");
 
+		// Create remote thread in the process to call LoadLibraryW with path to library to load.
 		std::uintptr_t remoteThreadHandle = CreateRemoteThread(loadLibraryWAddress, allocatedMemoryBase);
 
+		// Wait for thread to finish execution.
 		WaitForThread(remoteThreadHandle);
 	}
 
+	/// <summary>
+	/// Creates a remote thread in the target process.
+	/// </summary>
+	/// <param name="functionBaseAddress">The base address of the function to execute in the remote thread.</param>
+	/// <param name="parameterAddress">The address of the parameter to pass to the remote thread function.</param>
+	/// <returns>The handle to the created remote thread as an unsigned integer pointer. Throws if unable to create remote thread.</returns>
 	std::uintptr_t ProcessManager::CreateRemoteThread(FARPROC functionBaseAddress, std::uintptr_t parameterAddress) const
 	{
 		void* remoteThreadHandle = CreateRemoteThreadEx(_processHandle, nullptr, 0, (LPTHREAD_START_ROUTINE)functionBaseAddress, reinterpret_cast<void*>(parameterAddress), 0, nullptr, nullptr);

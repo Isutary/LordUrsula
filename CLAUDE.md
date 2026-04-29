@@ -23,5 +23,8 @@
 - Provide examples of code that *won't* work and explain *why* it fails.
 - Teaching over doing.
 
+## Codebase Context
+- Read SOLUTION.md at the start of each session or whenever codebase context is needed before responding.
+
 ## Scope
 - These guidelines apply only to this workspace/solution.

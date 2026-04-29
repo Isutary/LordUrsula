@@ -18,6 +18,7 @@ namespace Models
 		std::span<const IMAGE_RUNTIME_FUNCTION_ENTRY> GetAllImageRuntimeFunctionEntries() const;
 		std::span<const std::byte> GetBuffer() const { return _moduleWrapper.Data(); };
 		std::uintptr_t GetBaseAddress() const { return _moduleWrapper.BaseAddress(); };
+		std::span<std::byte> GetTextSection() const { return _textSection; };
 	private:
 		IMAGE_DOS_HEADER* CreateDosHeader() const;
 		IMAGE_FILE_HEADER* CreateFileHeader() const;
