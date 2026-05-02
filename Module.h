@@ -13,7 +13,7 @@ namespace Models
 		Module(Module&& other) noexcept = default;
 		Module& operator=(const Module& other) = delete;
 		Module& operator=(Module&& other) noexcept = default;
-		std::span<const std::byte> const Data() const noexcept { return _buffer; };
+		std::span<const std::byte> Data() const noexcept { return _buffer; };
 		std::span<std::byte> Data() noexcept { return _buffer; };
 		std::uintptr_t BaseAddress() const noexcept { return _baseAddress; };
 		size_t Size() const noexcept { return _buffer.size(); };

@@ -16,9 +16,11 @@ namespace Models
 		PortableExecutable(const PortableExecutable& other) = delete;
 		PortableExecutable& operator=(const PortableExecutable& other) = delete;
 		std::span<const IMAGE_RUNTIME_FUNCTION_ENTRY> GetAllImageRuntimeFunctionEntries() const;
-		std::span<const std::byte> GetBuffer() const { return _moduleWrapper.Data(); };
-		std::uintptr_t GetBaseAddress() const { return _moduleWrapper.BaseAddress(); };
-		std::span<std::byte> GetTextSection() const { return _textSection; };
+		std::span<const std::byte> GetBuffer() const noexcept { return _moduleWrapper.Data(); };
+		std::uintptr_t GetBaseAddress() const noexcept { return _moduleWrapper.BaseAddress(); };
+		std::span<std::byte> GetTextSection() const noexcept { return _textSection; };
+		const IMAGE_OPTIONAL_HEADER64* GetOptionalHeader() const { return _imageOptionalHeader64; };
+		void GetExportedFunction(std::string functionName);
 	private:
 		IMAGE_DOS_HEADER* CreateDosHeader() const;
 		IMAGE_FILE_HEADER* CreateFileHeader() const;

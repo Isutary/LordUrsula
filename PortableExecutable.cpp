@@ -33,6 +33,49 @@ namespace Models
 		return std::span<const IMAGE_RUNTIME_FUNCTION_ENTRY>(data, numberOfImageRuntimeFunctionEntries);
 	}
 
+	void PortableExecutable::GetExportedFunction(std::string targetFunctionName)
+	{
+		// First entry in IMAGE_OPTIONAL_HEADER64.DataDirectory contains address and size of export table.
+		IMAGE_DATA_DIRECTORY imageExportDataDirectory = _imageOptionalHeader64->DataDirectory[0];
+
+		// Calculate virtual address of IMAGE_EXPORT_DIRECTORY.
+		std::byte* imageExportDirectoryAddress = _buffer.data() + imageExportDataDirectory.VirtualAddress;
+
+		// Reinterpret raw bytes as IMAGE_EXPORT_DIRECTORY.
+		IMAGE_EXPORT_DIRECTORY* imageExportDirectory = reinterpret_cast<IMAGE_EXPORT_DIRECTORY*>(imageExportDirectoryAddress);
+
+		// Create export name pointer table.
+		DWORD* exportNamePointerTable = reinterpret_cast<DWORD*>(_buffer.data() + imageExportDirectory->AddressOfNames);
+
+		// Find index of target function in export name pointers table.
+		std::size_t i = 0;
+		for (i; i < imageExportDirectory->NumberOfNames; i++)
+		{
+			char* name = reinterpret_cast<char*>(reinterpret_cast<DWORD*>(_buffer.data() + exportNamePointerTable[i]));
+			if (std::string(name) == targetFunctionName)
+			{
+				break;
+			}
+		}
+
+		// If we reach the end of previous loop, it means we didn't find target function name.
+		if (i == imageExportDirectory->NumberOfNames)
+		{
+			throw std::runtime_error("Unable to find specified function name.");
+		}
+
+		// Create export function pointer table.
+		DWORD* exportFunctionPointerTable = reinterpret_cast<DWORD*>(_buffer.data() + imageExportDirectory->AddressOfFunctions);
+
+		// TODO: Figure out what address/offset needs to be returned.
+		auto offset = _buffer.data() + exportFunctionPointerTable[i];
+		while (*offset != std::byte(0xCC))
+		{
+			std::cout << std::hex << std::setfill('0') << std::setw(2) << static_cast<const unsigned int>(*offset) << " ";
+			offset++;
+		}
+	}
+
 	IMAGE_DOS_HEADER* PortableExecutable::CreateDosHeader() const
 	{
 		// Size of buffer is validated in IsImageFile method.
