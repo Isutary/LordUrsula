@@ -33,7 +33,7 @@ namespace Models
 		return std::span<const IMAGE_RUNTIME_FUNCTION_ENTRY>(data, numberOfImageRuntimeFunctionEntries);
 	}
 
-	void PortableExecutable::GetExportedFunction(std::string targetFunctionName)
+	std::uint32_t PortableExecutable::GetExportedFunction(std::string targetFunctionName)
 	{
 		// First entry in IMAGE_OPTIONAL_HEADER64.DataDirectory contains address and size of export table.
 		IMAGE_DATA_DIRECTORY imageExportDataDirectory = _imageOptionalHeader64->DataDirectory[0];
@@ -51,7 +51,7 @@ namespace Models
 		std::size_t i = 0;
 		for (i; i < imageExportDirectory->NumberOfNames; i++)
 		{
-			char* name = reinterpret_cast<char*>(reinterpret_cast<DWORD*>(_buffer.data() + exportNamePointerTable[i]));
+			char* name = reinterpret_cast<char*>(_buffer.data() + exportNamePointerTable[i]);
 			if (std::string(name) == targetFunctionName)
 			{
 				break;
@@ -64,16 +64,18 @@ namespace Models
 			throw std::runtime_error("Unable to find specified function name.");
 		}
 
+		// Create export ordinal table.
+		// Unlike name pointer table and function pointer table, the export ordinal table is an array of 16-bit unbiased indexes, 
+		// so we cast it do interprete it as WORD instead.
+		WORD* exportOrdinalTable = reinterpret_cast<WORD*>(_buffer.data() + imageExportDirectory->AddressOfNameOrdinals);
+		
+		// Because not all exported functions have name defined in name pointer table, we have to use ordinal table to get associated index in function pointer table. 
+		auto o = exportOrdinalTable[i];
+
 		// Create export function pointer table.
 		DWORD* exportFunctionPointerTable = reinterpret_cast<DWORD*>(_buffer.data() + imageExportDirectory->AddressOfFunctions);
-
-		// TODO: Figure out what address/offset needs to be returned.
-		auto offset = _buffer.data() + exportFunctionPointerTable[i];
-		while (*offset != std::byte(0xCC))
-		{
-			std::cout << std::hex << std::setfill('0') << std::setw(2) << static_cast<const unsigned int>(*offset) << " ";
-			offset++;
-		}
+		
+		return exportFunctionPointerTable[o];
 	}
 
 	IMAGE_DOS_HEADER* PortableExecutable::CreateDosHeader() const

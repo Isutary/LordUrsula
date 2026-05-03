@@ -20,7 +20,7 @@ namespace Models
 		std::uintptr_t GetBaseAddress() const noexcept { return _moduleWrapper.BaseAddress(); };
 		std::span<std::byte> GetTextSection() const noexcept { return _textSection; };
 		const IMAGE_OPTIONAL_HEADER64* GetOptionalHeader() const { return _imageOptionalHeader64; };
-		void GetExportedFunction(std::string functionName);
+		std::uint32_t GetExportedFunction(std::string functionName);
 	private:
 		IMAGE_DOS_HEADER* CreateDosHeader() const;
 		IMAGE_FILE_HEADER* CreateFileHeader() const;
