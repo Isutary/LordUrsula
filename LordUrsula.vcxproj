@@ -150,6 +150,7 @@
     <ClCompile Include="ProcessManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BytesHelper.h" />
     <ClInclude Include="CodeBuilder.h" />
     <ClInclude Include="CoutHelper.h" />
     <ClInclude Include="Exception.h" />

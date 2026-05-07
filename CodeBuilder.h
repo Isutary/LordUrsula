@@ -11,9 +11,9 @@ namespace Builders
 	public:
 		explicit CodeBuilder(const Models::PortableExecutable& portableExecutable);
 		~CodeBuilder() override;
-		Models::Trampoline CreateTrampoline(std::uintptr_t targetFunction) override;
+		Models::Trampoline CreateTrampoline(std::uintptr_t targetFunctionAddress) override;
 	private:
-		std::size_t FindCodeCave(int size) const;
+		std::uint32_t FindCodeCave(int size) const;
 		const Models::PortableExecutable& _portableExecutable;
 	};
 }

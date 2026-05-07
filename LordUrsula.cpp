@@ -8,6 +8,7 @@
 #include <CoutHelper.h>
 #include <CodeBuilder.h>
 #include <fstream>
+#include <Trampoline.h>
 
 int main(int, char* [])
 {
@@ -16,6 +17,8 @@ int main(int, char* [])
 	using IModuleManager = Managers::Interfaces::IModuleManager;
 	using ModuleManager = Managers::ModuleManager;
 	using PortableExecutable = Models::PortableExecutable;
+	using CodeBuilder = Builders::CodeBuilder;
+	using Trampoline = Models::Trampoline;
 
 	try
 	{
@@ -27,8 +30,14 @@ int main(int, char* [])
 		std::unique_ptr<PortableExecutable> exePortableExecutable = std::make_unique<PortableExecutable>(processManager->ReadModuleMemory(L"ConsoleAppTarget.exe"));
 		std::unique_ptr<PortableExecutable> targetDLLPortableExecutable = std::make_unique<PortableExecutable>(processManager->ReadModuleMemory(L"TargetDLL.dll"));
 
-		// TODO: Create function in PortableExecutable to read exported functions table to be able to find void Hack() function in the TargetDLL.dll
-		targetDLLPortableExecutable->GetExportedFunction("Hack");
+		std::uint32_t hackOffset = targetDLLPortableExecutable->GetExportedFunction("Hack");
+
+		CodeBuilder codeBuilder = Builders::CodeBuilder(*exePortableExecutable);
+		Trampoline trampoline = codeBuilder.CreateTrampoline(targetDLLPortableExecutable->GetBaseAddress() + hackOffset);
+
+		processManager->WriteMemory(trampoline.GetTargetFunctionAddress(), trampoline.GetTargetFunction());
+		processManager->WriteMemory(trampoline.GetTrampolineAddress(), trampoline.GetTrampolineInstruction());
+		processManager->WriteMemory(trampoline.GetCallAddress(), trampoline.GetCallInstruction());
 	}
 	catch (const std::exception& ex)
 	{

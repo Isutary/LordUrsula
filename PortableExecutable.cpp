@@ -33,6 +33,23 @@ namespace Models
 		return std::span<const IMAGE_RUNTIME_FUNCTION_ENTRY>(data, numberOfImageRuntimeFunctionEntries);
 	}
 
+	const IMAGE_SECTION_HEADER* PortableExecutable::GetFileImageSectionHeader() const
+	{
+		std::vector<IMAGE_SECTION_HEADER*>::const_iterator textSectionHeaderIt = std::find_if(_imageSectionsHeaders.begin(), _imageSectionsHeaders.end(), [](const IMAGE_SECTION_HEADER* currentImageSectionHeader)
+			{
+				char nameDestination[9] = {};
+				std::memcpy(nameDestination, currentImageSectionHeader->Name, sizeof(currentImageSectionHeader->Name));
+				return std::strcmp(nameDestination, ".text") == 0;
+			});
+
+		if (textSectionHeaderIt == _imageSectionsHeaders.end())
+		{
+			throw std::runtime_error("Unable to find .text section header.");
+		}
+
+		return *textSectionHeaderIt;
+	}
+
 	std::uint32_t PortableExecutable::GetExportedFunction(std::string targetFunctionName)
 	{
 		// First entry in IMAGE_OPTIONAL_HEADER64.DataDirectory contains address and size of export table.

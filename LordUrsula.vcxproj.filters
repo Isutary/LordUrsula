@@ -107,5 +107,8 @@
     <ClInclude Include="Trampoline.h">
       <Filter>Header Files\Models</Filter>
     </ClInclude>
+    <ClInclude Include="BytesHelper.h">
+      <Filter>Header Files\Helpers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

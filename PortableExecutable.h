@@ -19,6 +19,7 @@ namespace Models
 		std::span<const std::byte> GetBuffer() const noexcept { return _moduleWrapper.Data(); };
 		std::uintptr_t GetBaseAddress() const noexcept { return _moduleWrapper.BaseAddress(); };
 		std::span<std::byte> GetTextSection() const noexcept { return _textSection; };
+		const IMAGE_SECTION_HEADER* GetFileImageSectionHeader() const;
 		const IMAGE_OPTIONAL_HEADER64* GetOptionalHeader() const { return _imageOptionalHeader64; };
 		std::uint32_t GetExportedFunction(std::string functionName);
 	private:
