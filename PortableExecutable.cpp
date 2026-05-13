@@ -83,7 +83,7 @@ namespace Models
 
 		// Create export ordinal table.
 		// Unlike name pointer table and function pointer table, the export ordinal table is an array of 16-bit unbiased indexes, 
-		// so we cast it do interprete it as WORD instead.
+		// so we cast it do reinterpret it as WORD instead.
 		WORD* exportOrdinalTable = reinterpret_cast<WORD*>(_buffer.data() + imageExportDirectory->AddressOfNameOrdinals);
 		
 		// Because not all exported functions have name defined in name pointer table, we have to use ordinal table to get associated index in function pointer table. 

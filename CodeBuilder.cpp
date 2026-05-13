@@ -44,7 +44,7 @@ namespace Builders
 		// Create new call instruction to jump to cave.
 		// Call instruction(E8) is RIP-relative, meaning we need to find offset between current RIP value and location of trampoline.
 		// E8 is 5 bytes long, so subtract 5 bytes.
-		std::vector<std::byte> newCallInstructionBytes = Helpers::ToBytes(baseAddress + trampolineOffset - callAddress - 5);
+		std::vector<std::byte> newCallInstructionBytes = Helpers::ToBytes(static_cast<std::int32_t>(baseAddress + trampolineOffset - callAddress - 5));
 		newCallInstructionBytes.insert(newCallInstructionBytes.begin(), std::byte(0xE8));
 
 		// Create target function address
@@ -54,11 +54,11 @@ namespace Builders
 		std::uintptr_t targetFunctionAddressBytesAddress = baseAddress + targetFunctionAddressOffset;
 
 		// Create trampoline bytes.
-		// Indirect call instruction(FF /2) is RIP-relative, meaning we need to find offset between current RIP value and memory location of memory that holds 
+		// Indirect jump instruction(FF /4) is RIP-relative, meaning we need to find offset between current RIP value and memory location of memory that holds 
 		// address of the target function.
 		// In our case memory is directly after the instruction, and since RIP is moved before instruction, we can just set target address to 0.
 		std::vector<std::byte> trampolineBytes = Helpers::ToBytes(0);
-		trampolineBytes.insert(trampolineBytes.begin(), { std::byte(0xFF), std::byte(0x15) });
+		trampolineBytes.insert(trampolineBytes.begin(), { std::byte(0xFF), std::byte(0x25) });
 
 		// Calculate address of trampoline.
 		std::uintptr_t trampolineAddress = baseAddress + trampolineOffset;
