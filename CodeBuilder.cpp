@@ -15,7 +15,12 @@ namespace Builders
 	{
 	}
 
-	Models::Trampoline CodeBuilder::CreateTrampoline(std::uintptr_t targetFunctionAddress)
+	/// <summary>
+	/// Creates a call site detour by replacing a call instruction with a trampoline that redirects execution to a target function.
+	/// </summary>
+	/// <param name="targetFunctionAddress">The memory address of the function to redirect execution to.</param>
+	/// <returns>A Trampoline object containing the new call instruction bytes, trampoline bytes, and target function address bytes along with their respective memory addresses.</returns>
+	Models::Trampoline CodeBuilder::CreateCallSiteDetour(std::uintptr_t targetFunctionAddress)
 	{
 		const std::uintptr_t baseAddress = _portableExecutable.GetBaseAddress();
 		std::span<const std::byte> buffer = _portableExecutable.GetBuffer();
@@ -32,7 +37,7 @@ namespace Builders
 			throw std::runtime_error("Unable to find specified call instruction");
 		}
 
-		// Create code cave big enough to store trampoline instruction(FF /2) and address of target function.
+		// Create code cave big enough to store trampoline instruction(FF /4) and address of target function.
 		// FF /2 requires 6 bytes and target function address requires 8 bytes.
 		std::uint32_t caveOffset = FindCodeCave(14);
 		std::uint32_t trampolineOffset = caveOffset;

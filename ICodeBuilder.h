@@ -8,6 +8,6 @@ namespace Builders::Interfaces
 	{
 	public:
 		virtual ~ICodeBuilder() = default;
-		virtual Models::Trampoline CreateTrampoline(std::uintptr_t targetFunction) = 0;
+		virtual Models::Trampoline CreateCallSiteDetour(std::uintptr_t targetFunction) = 0;
 	};
 }

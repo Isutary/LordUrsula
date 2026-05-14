@@ -33,7 +33,7 @@ int main(int, char* [])
 		std::uint32_t hackOffset = targetDLLPortableExecutable->GetExportedFunction("Hack");
 
 		CodeBuilder codeBuilder = Builders::CodeBuilder(*exePortableExecutable);
-		Trampoline trampoline = codeBuilder.CreateTrampoline(targetDLLPortableExecutable->GetBaseAddress() + hackOffset);
+		Trampoline trampoline = codeBuilder.CreateCallSiteDetour(targetDLLPortableExecutable->GetBaseAddress() + hackOffset);
 
 		processManager->WriteMemory(trampoline.GetTargetFunctionAddress(), trampoline.GetTargetFunction());
 		processManager->WriteMemory(trampoline.GetTrampolineAddress(), trampoline.GetTrampolineInstruction());
